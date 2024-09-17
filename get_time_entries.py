@@ -3,8 +3,9 @@ import argparse
 import classes.utils as utils
 import csv
 import jsonpickle
+from pathlib import Path
 from dotenv import load_dotenv
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 def get_toast_client():
@@ -63,7 +64,18 @@ def aggregate_data():
     restaurant_info = choose_restaurant()
 
     rest_name = restaurant_info["name"]
-    start_date, end_date = utils.get_bounding_dates()
+
+    print("please enter starting and ending date mm/dd/yy")
+    start = input("start: ")
+    end = input("end: ")
+
+    start_date, end_date = utils.get_bounding_dates(start, end)
+
+    y = start_date.date().year
+    s = "{}-{}".format(start_date.date().month, start_date.date().day)
+    e_date = end_date - timedelta(days=1)
+    e = "{}-{}".format(e_date.date().month, e_date.date().day)
+    dates = "{}/{}_{}".format(y, s, e)
 
     raw_entries = client.get_raw_time_entries(restaurant_info["externalId"],
                                               start_date,
@@ -71,15 +83,24 @@ def aggregate_data():
     employees = get_employees(rest_name)
     employees.add_entries(raw_entries)
 
-    out_file_name = 'data/{}/time_entries/entries_class.json'.format(
-        rest_name)
-    arch_file_name = 'data/archive/{}/time_entries/entries_class.json'.format(
-        rest_name
-    )
-    no_pickle = 'data/{}/time_entries/entries_no_pickle.json'.format(rest_name)
-    arch_no_pickle = 'data/archive/{}/time_entries/entries_no_pickle.json'.format(
-        rest_name
-    )
+    data_path = Path('/Users/sam/dojo/python/toast-labor/data')
+    archive_path = data_path / 'archive'
+    out_file_name = data_path / rest_name / \
+        'time_entries' / dates / 'entries_class.json'
+
+    arch_file_name = archive_path / rest_name / \
+        'time_entries' / dates / 'entries_class.json'
+
+    no_pickle = data_path / rest_name / \
+        'time_entries' / dates / 'entries_no_pickle.json'
+
+    arch_no_pickle = archive_path / rest_name / \
+        'time_entries' / dates / 'entries_no_pickle.json'
+
+    paths = [out_file_name, arch_file_name, no_pickle, arch_no_pickle]
+
+    for p in paths:
+        p.parent.mkdir(parents=True, exist_ok=True)
 
     with open(out_file_name, 'w') as f:
         f.write(jsonpickle.encode(employees))

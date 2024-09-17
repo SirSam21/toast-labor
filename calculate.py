@@ -32,10 +32,11 @@ def calculate():
     cook_tip_split = restaurant_info["jobs"]["cook"]["tipPool"]
     server_id = restaurant_info["jobs"]["server"]["guid"]
     cook_id = restaurant_info["jobs"]["cook"]["guid"]
+    # date_fmt =
 
-    entries_file = 'data/{}/time_entries/entries_class.json'.format(
+    entries_file = 'data/{}/time_entries/{}/entries_class.json'.format(
         restaurant_name)
-    update_file = 'data/{}/time_entries/entries_no_pickle.json'.format(
+    update_file = 'data/{}/time_entries/{}/entries_no_pickle.json'.format(
         restaurant_name)
 
     with open(entries_file, 'r') as f:

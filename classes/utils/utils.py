@@ -2,13 +2,10 @@ from datetime import datetime, timedelta
 import json
 
 
-def get_bounding_dates():
-    print("please enter starting and ending date mm/dd/yy")
-    # start = input("start: ") + "-0700"
-    # end = input("end: ") + "-0700"
+def get_bounding_dates(start, end):
 
-    start = "08/25/24-0700"
-    end = "09/07/24-0700"
+    start = start + "-0700"
+    end = end + "-0700"
     start_date = datetime.strptime(start, '%m/%d/%y%z')
     end_date = datetime.strptime(
         end, '%m/%d/%y%z') + timedelta(days=1)
