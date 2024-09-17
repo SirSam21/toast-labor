@@ -7,10 +7,14 @@ standard_fmt_2 = '%Y-%m-%d %H:%M:%S%z'
 
 class Employee:
     def __init__(self, first_name, last_name, ext_id, wage_id,
-                 restaurant_id, job_id):
+                 restaurant_id, job_id, ref_id=0):
         self.first_name = first_name
         self.last_name = last_name
+        # id found in csv files
         self.ext_id = ext_id
+        # id found in time entry employee references
+        self.ref_id = ref_id
+        # id used to connect external id to ref id
         self.wage_id = wage_id
         self.restaurant_id = restaurant_id
         self.job_id = job_id
@@ -21,15 +25,15 @@ class Employee:
         self.overtime_offset = 0
         self.notes = ""
         self.time_entries = []
-        self._next_time_entry_id = 0
 
     def to_csv(self):
         return [
             self.restaurant_id,
             self.first_name,
             self.last_name,
-            self.wage_id,
             self.ext_id,
+            self.ref_id,
+            self.wage_id,
             self.job_id
         ]
 

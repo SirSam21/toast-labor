@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
 import json
+from pathlib import Path
 
 
 def get_bounding_dates(start, end):
@@ -35,3 +36,9 @@ def wage_to_id(wage):
 def toast_date_format(time):
     # "2016-01-01T14:13:12.000-0000"
     return time.strftime('%Y-%m-%dT%H:%M:%S.%f')[:-3] + "-0700"
+
+
+def get_time_entries_path(restaurant_name):
+    data_path = Path('/Users/sam/dojo/python/toast-labor/data')
+    p = data_path / restaurant_name / 'time_entries'
+    return p

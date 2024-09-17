@@ -4,17 +4,43 @@ from dotenv import load_dotenv
 from collections import defaultdict
 from datetime import datetime
 from classes import CustomDatetimeHandler
+from classes.utils import get_time_entries_path
 from get_time_entries import choose_restaurant
+from pick import pick
 
 
 def summary(employee):
     regular_hours = 0
     overtime_hours = 0
-    for te in employee.time_entries:
-        regular_hours += te.regular_hours
-        overtime_hours += te.overtime_hours
+    work_week_hours = 0
 
-    fmt = "name: {} {}\nregular hours: {: .2f}\not hours: {: .2f}\ncredit tips: {: .2f}\ncash tips: {: .2f}\n"
+    for te in employee.time_entries:
+
+        # this is to account for toast's work week start being
+        # different than our desired work week start. As of 9/17/24
+        # Toast uses Monday as the work week start where it should be
+        # calculated using Sunday as the first day of the week.
+
+        reg = te.regular_hours
+        over = te.overtime_hours
+        # 6 represents Sunday
+        if te.in_date.weekday() == 6:
+            work_week_hours = 0
+
+        if work_week_hours > 40:
+            overtime_hours += reg + over
+        if work_week_hours + reg + over > 40:
+            # 36, 6, 2
+            # 40, 4
+            work_week_hours += reg + over
+            regular_hours = 40
+            overtime_hours += work_week_hours - 40
+        else:
+            day_hours = reg + over
+            regular_hours += min(day_hours, 8)
+            overtime_hours += max(day_hours - 8, 0)
+
+    fmt = "name: {} {}\nregular hours: {: .2f}\novertime hours: {: .2f}\ncredit tips: {: .2f}\ncash tips: {: .2f}\n"
 
     return fmt.format(
         employee.first_name,
@@ -25,6 +51,19 @@ def summary(employee):
         employee.cash_tips)
 
 
+def pick_payroll(restaurant_name):
+    p = get_time_entries_path(restaurant_name)
+    year_paths = [x for x in p.iterdir() if x.is_dir()]
+    options = []
+    for yp in year_paths:
+        options += [x for x in yp.iterdir() if x.is_dir()]
+
+    title = 'Please choose a payroll to calculate: '
+    option, _ = pick(options, title)
+
+    return option
+
+
 def calculate():
     restaurant_info = choose_restaurant()
     restaurant_name = restaurant_info["name"]
@@ -32,12 +71,10 @@ def calculate():
     cook_tip_split = restaurant_info["jobs"]["cook"]["tipPool"]
     server_id = restaurant_info["jobs"]["server"]["guid"]
     cook_id = restaurant_info["jobs"]["cook"]["guid"]
-    # date_fmt =
+    entries_dir = pick_payroll(restaurant_name)
 
-    entries_file = 'data/{}/time_entries/{}/entries_class.json'.format(
-        restaurant_name)
-    update_file = 'data/{}/time_entries/{}/entries_no_pickle.json'.format(
-        restaurant_name)
+    entries_file = entries_dir / 'entries_class.json'
+    update_file = entries_dir / 'entries_no_pickle.json'
 
     with open(entries_file, 'r') as f:
         employees = jsonpickle.decode(f.read())
@@ -84,7 +121,7 @@ def calculate():
             employee.cash_tips += math.floor(cash_tips[k] * r)
             leftover -= math.floor(cash_tips[k] * r)
 
-    out_file = 'data/{}/tmp_complete.txt'.format(restaurant_name)
+    out_file = entries_dir / 'payroll.txt'
     with open(out_file, "w") as f:
         for employee in employees.values():
             employee.cash_tips += math.floor(leftover / len(employees))
