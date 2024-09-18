@@ -8,3 +8,5 @@ x make git repo
   x move secret data to a .env file
 - pair guid for employee.csv and time entry api responses
 - move all date formats to utils.py
+- clean up update_employee_ids.py
+
