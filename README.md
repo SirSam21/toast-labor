@@ -14,9 +14,8 @@ py update_employee_ids.py
 py get_time_entries.py
 ```
 
-# manually fix time entries in data/{restaurant}/time_entries/{year}/{pay_period}/entries_no_pickle.json
-What you are looking for are mainly people who forgot to clock out or any other
-anomalies.
+# manually fix time entries
+Found in  in data/{restaurant}/time_entries/{year}/{pay_period}/entries_no_pickle.json. What you are looking for are mainly people who forgot to clock out or any other anomalies.
 
 # Calculate the hours for each employee
 Make sure you have the cash tips for the pay period
