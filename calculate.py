@@ -7,6 +7,7 @@ from classes import CustomDatetimeHandler
 from classes.utils import get_time_entries_path
 from get_time_entries import choose_restaurant
 from pick import pick
+import os
 
 
 def summary(employee):
@@ -58,6 +59,7 @@ def pick_payroll(restaurant_name):
     for yp in year_paths:
         options += [x for x in yp.iterdir() if x.is_dir()]
 
+    options = sorted(options, key=os.path.getmtime, reverse=True)
     title = 'Please choose a payroll to calculate: '
     option, _ = pick(options, title)
 
