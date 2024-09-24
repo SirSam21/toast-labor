@@ -9,4 +9,4 @@ x make git repo
 - pair guid for employee.csv and time entry api responses
 - move all date formats to utils.py
 - clean up update_employee_ids.py
-
+- write tests

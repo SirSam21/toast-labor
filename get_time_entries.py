@@ -31,13 +31,14 @@ def get_employees(restaurant_name):
         reader = csv.reader(f)
         for row in reader:
             row = [x.strip() for x in row]
-            restaurant_id, first_name, last_name, wage_id, guid, job_id = row
+            restaurant_id, first_name, last_name, ext_id, ref_id, wage_id, job_id = row
             employees[int(wage_id)] = Employee(first_name,
                                                last_name,
-                                               guid,
+                                               ext_id,
                                                int(wage_id),
                                                restaurant_id,
-                                               job_id)
+                                               job_id,
+                                               ref_id)
 
     return employees
 

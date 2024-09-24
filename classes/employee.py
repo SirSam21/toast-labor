@@ -1,12 +1,13 @@
 import json
 from datetime import datetime
+from .time_entry import TimeEntry
 
 standard_fmt_1 = '%Y-%m-%d %H:%M:%S.%f%z'
 standard_fmt_2 = '%Y-%m-%d %H:%M:%S%z'
 
 
 class Employee:
-    def __init__(self, first_name, last_name, ext_id, wage_id,
+    def __init__(self, first_name, last_name, ext_id,
                  restaurant_id, job_id, ref_id=0):
         self.first_name = first_name
         self.last_name = last_name
@@ -15,7 +16,6 @@ class Employee:
         # id found in time entry employee references
         self.ref_id = ref_id
         # id used to connect external id to ref id
-        self.wage_id = wage_id
         self.restaurant_id = restaurant_id
         self.job_id = job_id
         self.credit_tips = 0
@@ -33,7 +33,6 @@ class Employee:
             self.last_name,
             self.ext_id,
             self.ref_id,
-            self.wage_id,
             self.job_id
         ]
 
@@ -70,6 +69,11 @@ class Employee:
         self.notes = data["notes"]
 
         for i, dte in enumerate(data["time_entries"]):
+            if len(self.time_entries) - 1 < i:
+                te = TimeEntry()
+                te.job_guid = dte["job_guid"]
+                self.time_entries.append(te)
+
             try:
                 self.time_entries[i].in_date = datetime.strptime(dte["in_date"],
                                                                  standard_fmt_1)

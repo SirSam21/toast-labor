@@ -9,7 +9,7 @@ tz = ZoneInfo("America/Los_Angeles")
 
 
 class TimeEntry:
-    def __init__(self, raw_time_entry):
+    def __init__(self, raw_time_entry=None):
 
         # "inDate": "2024-09-07T22:58:33.933+0000",
         # "outDate": "2024-09-08T11:00:00.000+0000",
@@ -25,19 +25,33 @@ class TimeEntry:
         # "hourlyWage": 0.13,
         # "nonCashTips": 5.0,
         # "autoClockedOut": true
-        self.in_date = datetime.strptime(
-            raw_time_entry["inDate"], toast_date_format).astimezone(tz)
-        self.out_date = datetime.strptime(
-            raw_time_entry["outDate"], toast_date_format).astimezone(tz)
-        self.overtime_hours = float(raw_time_entry["overtimeHours"])
-        self.total_break_time = 0
-        self.aggregate_break_time(raw_time_entry["breaks"])
-        self.guid = raw_time_entry["employeeReference"]["guid"]
-        self.regular_hours = float(raw_time_entry["regularHours"])
-        self.job_guid = raw_time_entry["jobReference"]["guid"]
-        self.wage_id = wage_to_id(raw_time_entry["hourlyWage"])
-        self.credit_tips = float(raw_time_entry["nonCashTips"])
-        self.auto_clocked_out = bool(raw_time_entry["autoClockedOut"])
+        if not raw_time_entry:
+            self.in_date = \
+                datetime.strptime("2000-01-01T11:11:11.111+0000",
+                                  toast_date_format).astimezone(tz)
+            self.out_date = \
+                datetime.strptime("2000-01-01T11:11:11.111+0000",
+                                  toast_date_format).astimezone(tz)
+            self.overtime_hours = 0
+            self.total_break_time = 0
+            self.guid = ""
+            self.regular_hours = 0
+            self.job_guid = ""
+            self.credit_tips = 0
+            self.auto_clocked_out = False
+        else:
+            self.in_date = datetime.strptime(
+                raw_time_entry["inDate"], toast_date_format).astimezone(tz)
+            self.out_date = datetime.strptime(
+                raw_time_entry["outDate"], toast_date_format).astimezone(tz)
+            self.overtime_hours = float(raw_time_entry["overtimeHours"])
+            self.total_break_time = 0
+            self.aggregate_break_time(raw_time_entry["breaks"])
+            self.guid = raw_time_entry["employeeReference"]["guid"]
+            self.regular_hours = float(raw_time_entry["regularHours"])
+            self.job_guid = raw_time_entry["jobReference"]["guid"]
+            self.credit_tips = float(raw_time_entry["nonCashTips"])
+            self.auto_clocked_out = bool(raw_time_entry["autoClockedOut"])
 
     def check(self):
         """
@@ -100,7 +114,6 @@ breaks: {}
 guid: {}
 regular_hours: {}
 job_guid: {}
-wage_id: {}
 credit_tips: {}
 auto_clocked_out: {}""".format(
             in_date,
@@ -110,6 +123,5 @@ auto_clocked_out: {}""".format(
             self.guid,
             self.regular_hours,
             self.job_guid,
-            self.wage_id,
             self.credit_tips,
             self.auto_clocked_out)

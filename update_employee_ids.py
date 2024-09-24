@@ -1,32 +1,36 @@
 import csv
 from dotenv import load_dotenv
-from classes import ToastClient, Employee
+from classes import ToastClient, Employee, EmployeeDict
 from classes.utils import get_bounding_dates, get_restaurants_info
+from pathlib import Path
 
-url = "https://ws-api.toasttab.com"
 
+def get_wage_id_to_ref_id(time_entries):
 
-def get_wage_id_to_int_id(time_entries):
-
-    wage_id_to_int_id = {}
+    wage_to_ref = {}
     for te in time_entries:
-        int_guid = te["employeeReference"]["guid"]
+        ref_id = te["employeeReference"]["guid"]
         wage_id = int(te["hourlyWage"]*100)
-        wage_id_to_int_id[wage_id] = int_guid
+        wage_to_ref[wage_id] = ref_id
 
-    return wage_id_to_int_id
+    return wage_to_ref
 
 
 def update_employee_ids():
 
     restaurants = get_restaurants_info()
     client = ToastClient()
-    start, end = get_bounding_dates()
+    print("please enter starting and ending date mm/dd/yy")
+    start = input("start: ")
+    end = input("end: ")
+
+    start, end = get_bounding_dates(start, end)
 
     for r in restaurants:
-        ext_id_to_employee = {}
-        wage_id_to_ext_id = {}
-        file_name = "data/{}/employees.csv".format(r["name"])
+        employees = EmployeeDict()
+        restaurant_path = Path('data') / r["name"]
+
+        file_name = restaurant_path / 'employees.csv'
         with open(file_name) as f:
             reader = csv.reader(f)
             for row in reader:
@@ -34,25 +38,26 @@ def update_employee_ids():
                 first_name, last_name, external_guid, job_id, wage_id = row
                 wage_id = int(str(wage_id).split(";")[0].replace(".", ""))
                 job_id = str(job_id).split(";")[0]
-                ext_id_to_employee[external_guid] = Employee(first_name,
-                                                             last_name,
-                                                             external_guid,
-                                                             wage_id,
-                                                             r["externalId"],
-                                                             job_id)
-                wage_id_to_ext_id[wage_id] = external_guid
+                emp = Employee(first_name,
+                               last_name,
+                               external_guid,
+                               r["externalId"],
+                               job_id)
+                employees[wage_id] = emp
 
         time_entries = client.get_raw_time_entries(r["externalId"], start, end)
-        w2i = get_wage_id_to_int_id(time_entries)
-        i2e = {}
-        for w_id, i_id in w2i.items():
-            if w_id in wage_id_to_ext_id:
-                i2e[i_id] = ext_id_to_employee[wage_id_to_ext_id[w_id]]
+        wage_to_ref = get_wage_id_to_ref_id(time_entries)
 
-        file_name = "data/{}/employee_ids.csv".format(r["name"])
-        with open(file_name, 'w') as csvfile:
+        for wid, emp in employees.items():
+            if wid in wage_to_ref:
+                emp.ref_id = wage_to_ref[wid]
+            else:
+                emp.ref_id = "none"
+
+        employee_ids_path = restaurant_path / 'employee_ids.csv'
+        with open(employee_ids_path, 'w') as csvfile:
             writer = csv.writer(csvfile)
-            for k, v in i2e.items():
+            for v in employees.values():
                 writer.writerow(v.to_csv())
 
 
