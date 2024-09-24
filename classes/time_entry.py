@@ -1,4 +1,3 @@
-from .utils import wage_to_id
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
